@@ -8,6 +8,7 @@ import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.awaitCancellation
 import org.slf4j.LoggerFactory
 import kotlinx.io.asSource
 import kotlinx.io.asSink
@@ -23,10 +24,6 @@ fun main() = runBlocking {
         ),
         options = ServerOptions(
             capabilities = ServerCapabilities(
-//                resources = ServerCapabilities.Resources(
-//                    subscribe = true,
-//                    listChanged = true
-//                ),
                 tools = ServerCapabilities.Tools()
             )
         )
@@ -49,7 +46,14 @@ fun main() = runBlocking {
         inputStream = System.`in`.asSource().buffered(),
         outputStream = System.out.asSink().buffered()
     )
+    
+    log.info("MCP server starting...")
     server.createSession(transport)
-
-    log.info("MCP server stopped")
+    
+    // Ожидаем завершения сессии (держим сервер активным)
+    try {
+        awaitCancellation()
+    } catch (e: Exception) {
+        log.info("MCP server stopped: ${e.message}")
+    }
 }
