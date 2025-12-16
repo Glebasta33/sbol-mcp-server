@@ -61,7 +61,7 @@ fun main() {
         println("PlanFileWatcher started and monitoring ${AppConfig.PLANS_BASE_PATH}")
 
         // Создать и настроить MCP сервер
-        val server: Server = createServer(contextService, planService, fileService, coroutineScope)
+        val server: Server = createServer(contextService, planService, fileService, fileWatcher, coroutineScope)
         val stdioServerTransport = StdioServerTransport(
             System.`in`.asSource().buffered(),
             System.out.asSink().buffered()
@@ -89,6 +89,7 @@ fun createServer(
     contextService: ContextServiceImpl,
     planService: PlanServiceImpl,
     fileService: FileService,
+    planFileWatcher: PlanFileWatcher,
     coroutineScope: CoroutineScope
 ): Server {
     val info = Implementation(
@@ -106,7 +107,7 @@ fun createServer(
     val server = Server(info, options)
 
     // Регистрация всех tools через ToolRegistry
-    val toolRegistry = ToolRegistry(contextService, fileService, planService, coroutineScope)
+    val toolRegistry = ToolRegistry(contextService, fileService, planService, planFileWatcher, coroutineScope)
     toolRegistry.registerAllTools(server)
 
     return server

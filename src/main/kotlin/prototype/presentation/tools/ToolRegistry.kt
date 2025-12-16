@@ -2,6 +2,7 @@ package prototype.presentation.tools
 
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.coroutines.CoroutineScope
+import prototype.data.service.PlanFileWatcher
 import prototype.domain.service.ContextService
 import prototype.domain.service.FileService
 import prototype.todo.domain.service.PlanService
@@ -17,6 +18,7 @@ class ToolRegistry(
     private val contextService: ContextService,
     private val fileService: FileService,
     private val planService: PlanService? = null,
+    private val planFileWatcher: PlanFileWatcher? = null,
     private val coroutineScope: CoroutineScope
 ) {
     /**
@@ -30,9 +32,9 @@ class ToolRegistry(
 
         // Plan management tools
         planService?.let { service ->
-            server.addCreatePlanTool(service, coroutineScope)
+            server.addCreatePlanTool(service, planFileWatcher, coroutineScope)
             server.addUpdateTaskStatusTool(service)
-            server.addGetCurrentPlanTool(service, coroutineScope)
+            server.addGetCurrentPlanTool(service, planFileWatcher, coroutineScope)
         }
     }
 }

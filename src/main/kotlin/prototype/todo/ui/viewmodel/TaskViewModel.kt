@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import prototype.core.result.Result
+import prototype.data.service.PlanFileWatcher
 import prototype.todo.domain.model.TaskPlan
 import prototype.todo.domain.model.TaskStatus
 import prototype.todo.domain.service.PlanService
@@ -18,6 +19,7 @@ import prototype.todo.domain.service.PlanService
  */
 class TaskViewModel(
     private val planService: PlanService,
+    private val planFileWatcher: PlanFileWatcher?,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
     private val _currentPlan = MutableStateFlow<TaskPlan?>(null)
@@ -33,6 +35,19 @@ class TaskViewModel(
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
+        // Подписаться на изменения из PlanFileWatcher
+        planFileWatcher?.let { watcher ->
+            coroutineScope.launch {
+                watcher.reloadTrigger.collect { _ ->
+                    // При каждом изменении файла перезагружаем планы
+                    println("TaskViewModel: File change detected, reloading plans...")
+                    loadCurrentPlan()
+                    loadAllPlans()
+                }
+            }
+        }
+        
+        // Первоначальная загрузка
         loadCurrentPlan()
         loadAllPlans()
     }
@@ -87,6 +102,9 @@ class TaskViewModel(
             _isLoading.value = true
             _error.value = null
 
+            // Уведомить watcher, что обновление идет из UI
+            planFileWatcher?.setUpdatingFromUI(true)
+
             when (val result = planService.setActivePlan(planId)) {
                 is Result.Success -> {
                     _currentPlan.value = result.data
@@ -94,6 +112,8 @@ class TaskViewModel(
                 }
                 is Result.Error -> {
                     _error.value = result.error.message
+                    // Сбросить флаг в случае ошибки
+                    planFileWatcher?.setUpdatingFromUI(false)
                 }
             }
 
@@ -114,12 +134,17 @@ class TaskViewModel(
             _isLoading.value = true
             _error.value = null
 
+            // Уведомить watcher, что обновление идет из UI
+            planFileWatcher?.setUpdatingFromUI(true)
+
             when (val result = planService.updateTaskStatus(plan.id, taskId, newStatus)) {
                 is Result.Success -> {
                     _currentPlan.value = result.data
                 }
                 is Result.Error -> {
                     _error.value = result.error.message
+                    // Сбросить флаг в случае ошибки
+                    planFileWatcher?.setUpdatingFromUI(false)
                 }
             }
 
@@ -173,6 +198,9 @@ class TaskViewModel(
             _isLoading.value = true
             _error.value = null
 
+            // Уведомить watcher, что обновление идет из UI
+            planFileWatcher?.setUpdatingFromUI(true)
+
             when (val result = planService.deletePlan(planId)) {
                 is Result.Success -> {
                     // Перезагрузить все планы после удаления
@@ -185,6 +213,8 @@ class TaskViewModel(
                 }
                 is Result.Error -> {
                     _error.value = result.error.message
+                    // Сбросить флаг в случае ошибки
+                    planFileWatcher?.setUpdatingFromUI(false)
                 }
             }
 

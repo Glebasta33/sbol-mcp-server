@@ -19,6 +19,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import prototype.data.service.PlanFileWatcher
 import prototype.todo.domain.service.PlanService
 import prototype.todo.ui.components.TaskList
 import prototype.todo.ui.viewmodel.TaskViewModel
@@ -30,17 +31,20 @@ import java.time.format.DateTimeFormatter
  * Отображает текущий план с задачами и позволяет управлять их статусами
  *
  * @param planService Сервис для работы с планами
+ * @param planFileWatcher Watcher для отслеживания изменений файлов планов
  * @param onCloseRequest Callback при закрытии окна
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskManagerWindow(
     planService: PlanService,
+    planFileWatcher: PlanFileWatcher?,
     onCloseRequest: () -> Unit
 ) {
     val viewModel = remember {
         TaskViewModel(
             planService = planService,
+            planFileWatcher = planFileWatcher,
             coroutineScope = CoroutineScope(Dispatchers.Default)
         )
     }
@@ -363,8 +367,9 @@ private object UIState {
  * Это предотвращает влияние на MCP сервер stdio транспорт.
  *
  * @param planService Сервис для работы с планами
+ * @param planFileWatcher Watcher для отслеживания изменений файлов планов
  */
-fun launchTaskManagerApp(planService: PlanService) {
+fun launchTaskManagerApp(planService: PlanService, planFileWatcher: PlanFileWatcher? = null) {
     // Если UI уже запущен, показываем окно
     if (UIState.isRunning) {
         println("Task Manager UI is already running, showing window...")
@@ -397,6 +402,7 @@ fun launchTaskManagerApp(planService: PlanService) {
             ) {
                 TaskManagerWindow(
                     planService = planService,
+                    planFileWatcher = planFileWatcher,
                     onCloseRequest = {
                         exitApplication()
                         println("Task Manager UI window hidden (MCP server still running)")

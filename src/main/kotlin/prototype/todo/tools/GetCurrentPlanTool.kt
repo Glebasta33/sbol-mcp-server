@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import prototype.core.result.Result
+import prototype.data.service.PlanFileWatcher
 import prototype.todo.domain.service.PlanService
 import prototype.todo.ui.launchTaskManagerApp
 import java.util.concurrent.atomic.AtomicBoolean
@@ -17,7 +18,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Tool для получения текущего активного плана
  */
-fun Server.addGetCurrentPlanTool(planService: PlanService, coroutineScope: CoroutineScope) {
+fun Server.addGetCurrentPlanTool(
+    planService: PlanService,
+    planFileWatcher: PlanFileWatcher?,
+    coroutineScope: CoroutineScope
+) {
     addTool(
         name = "get_current_plan",
         description = """
@@ -135,7 +140,7 @@ fun Server.addGetCurrentPlanTool(planService: PlanService, coroutineScope: Corou
                     if (isUILaunched.compareAndSet(false, true)) {
                         coroutineScope.launch {
                             println("Launching Task Manager UI after getting current plan...")
-                            launchTaskManagerApp(planService)
+                            launchTaskManagerApp(planService, planFileWatcher)
                         }
                     }
 

@@ -11,6 +11,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import prototype.core.result.Result
+import prototype.data.service.PlanFileWatcher
 import prototype.todo.domain.service.PlanService
 import prototype.todo.ui.launchTaskManagerApp
 import java.util.concurrent.atomic.AtomicBoolean
@@ -23,7 +24,11 @@ val isUILaunched = AtomicBoolean(false)
 /**
  * Tool для создания нового плана с задачами
  */
-fun Server.addCreatePlanTool(planService: PlanService, coroutineScope: CoroutineScope) {
+fun Server.addCreatePlanTool(
+    planService: PlanService,
+    planFileWatcher: PlanFileWatcher?,
+    coroutineScope: CoroutineScope
+) {
     addTool(
         name = "create_plan",
         description = """
@@ -116,7 +121,7 @@ fun Server.addCreatePlanTool(planService: PlanService, coroutineScope: Coroutine
                 if (isUILaunched.compareAndSet(false, true)) {
                     coroutineScope.launch {
                         println("Launching Task Manager UI after first plan creation...")
-                        launchTaskManagerApp(planService)
+                        launchTaskManagerApp(planService, planFileWatcher)
                     }
                 }
 
