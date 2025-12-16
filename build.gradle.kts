@@ -13,10 +13,7 @@ repositories {
 }
 
 tasks.shadowJar {
-    archiveFileName.set("my-app.jar") // Имя вашего JAR
-    manifest {
-        attributes["Main-Class"] = "com.yourpackage.MainKt" // Полный путь к классу с `fun main()`
-    }
+    archiveFileName.set("my-app.jar")
 }
 val mcpVersion = "0.8.1"
 val ktorVersion = "3.2.3"

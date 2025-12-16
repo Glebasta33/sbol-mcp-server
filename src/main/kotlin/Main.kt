@@ -17,15 +17,15 @@ import kotlinx.io.asSink
 import kotlinx.io.asSource
 import kotlinx.io.buffered
 
+
 /**
  * MCP Server providing a simple "hello" tool.
  * Based on official MCP Kotlin SDK example.
  *
  * ./gradlew shadowJar
- *
  * java -jar /Users/20732431/IdeaProjects/sbol-mcp-server/build/libs/my-app.jar
- * java -jar /IdeaProjects/sbol-mcp-server/build/libs/my-app.jar
  *
+ * ./gradlew installDist
  *
  */
 fun main() {
@@ -59,7 +59,6 @@ fun createServer(): Server {
     val server = Server(info, options)
 
     server.addHelloWorldTool()
-    server.addSystemInfoTool()
     server.testArgumentsTool()
 
     return server

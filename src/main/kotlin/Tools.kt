@@ -1,79 +1,39 @@
 package prototype
 
-import io.ktor.http.parameters
-import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 
 fun Server.addHelloWorldTool() {
     addTool(
-        inputSchema = Tool.Input(
-            properties = buildJsonObject {
-                put(
-                    "название функции",
-                    buildJsonObject {
-                        put("type", JsonPrimitive("string"))
-                        put("description", JsonPrimitive("любой текст"))
-                    },
-                )
-            },
-            required = listOf("название функции"),
-        ),
         name = "hello",
-        description = "Returns Hello World message from Kotlin MCP server"
+        description = """
+            Используй данную функцию, когда тебя просят передать привет. 
+            Функция принимает аргумент name_arg в виде строки String.
+            name_arg - имя человека, которому нужно передать привет.
+        """.trimIndent(),
+        inputSchema = Tool.Input(
+            properties = JsonObject(
+                mapOf(
+                    "name_arg" to JsonObject(mapOf("type" to JsonPrimitive("string")))
+                )
+            ),
+            required = listOf("name_arg")
+        )
     ) { request ->
 
-        CallToolResult(
-            content = listOf(
-                TextContent(
-                    text = "Hello World from SBOL MCP Server ! ^_^" + " лвлвда " +  request.arguments.toString().uppercase()
-                )
-            )
+        val helloArg = request.arguments["name_arg"]?.jsonPrimitive?.content ?: return@addTool CallToolResult(
+            content = listOf(TextContent("The 'state' parameter is required.")),
         )
-    }
-}
 
-fun Server.addGetCurrentTimeTool() {
-    addTool(
-        name = "get_time",
-        description = "Returns current date and time"
-    ) { _ ->
-        val currentTime = java.time.LocalDateTime.now()
-        val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         CallToolResult(
             content = listOf(
                 TextContent(
-                    text = "Current time: ${currentTime.format(formatter)}"
-                )
-            )
-        )
-    }
-}
-
-fun Server.addSystemInfoTool() {
-    addTool(
-        name = "system_info",
-        description = "Returns basic system information"
-    ) { _ ->
-        val info = buildString {
-            appendLine("System Information:")
-            appendLine("- OS: ${System.getProperty("os.name")}")
-            appendLine("- OS Version: ${System.getProperty("os.version")}")
-            appendLine("- Architecture: ${System.getProperty("os.arch")}")
-            appendLine("- Java Version: ${System.getProperty("java.version")}")
-            appendLine("- Java Vendor: ${System.getProperty("java.vendor")}")
-            appendLine("- User: ${System.getProperty("user.name")}")
-            appendLine("- Working Directory: ${System.getProperty("user.dir")}")
-        }
-        CallToolResult(
-            content = listOf(
-                TextContent(
-                    text = info
+                    text = " Привет, $helloArg! ^_^"
                 )
             )
         )
