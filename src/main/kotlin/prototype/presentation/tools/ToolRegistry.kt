@@ -5,6 +5,9 @@ import kotlinx.coroutines.CoroutineScope
 import prototype.domain.service.ContextService
 import prototype.domain.service.FileService
 import prototype.todo.domain.service.PlanService
+import prototype.todo.tools.addCreatePlanTool
+import prototype.todo.tools.addGetCurrentPlanTool
+import prototype.todo.tools.addUpdateTaskStatusTool
 
 /**
  * Реестр всех MCP Tools

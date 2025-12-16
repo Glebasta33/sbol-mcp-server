@@ -1,9 +1,10 @@
-package prototype.presentation.tools
+package prototype.todo.tools
 
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -68,7 +69,7 @@ fun Server.addUpdateTaskStatusTool(planService: PlanService) {
                                 )
                                 put(
                                     "values",
-                                    kotlinx.serialization.json.JsonArray(
+                                    JsonArray(
                                         listOf(
                                             JsonPrimitive("pending"),
                                             JsonPrimitive("in_progress"),

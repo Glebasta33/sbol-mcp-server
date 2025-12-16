@@ -1,4 +1,4 @@
-package prototype.presentation.tools
+package prototype.todo.tools
 
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
@@ -6,14 +6,13 @@ import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import prototype.core.result.Result
-import prototype.presentation.ui.launchTaskManagerApp
 import prototype.todo.domain.service.PlanService
+import prototype.todo.ui.launchTaskManagerApp
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -112,7 +111,7 @@ fun Server.addCreatePlanTool(planService: PlanService, coroutineScope: Coroutine
                 val tasksInfo = plan.tasks.joinToString("\n") { task ->
                     "  - [${if (task.isCompleted()) "x" else " "}] ${task.id}: ${task.title} (${task.status.value})"
                 }
-                
+
                 // Запустить UI если это первый план
                 if (isUILaunched.compareAndSet(false, true)) {
                     coroutineScope.launch {
@@ -120,7 +119,7 @@ fun Server.addCreatePlanTool(planService: PlanService, coroutineScope: Coroutine
                         launchTaskManagerApp(planService)
                     }
                 }
-                
+
                 CallToolResult(
                     content = listOf(
                         TextContent(
@@ -154,4 +153,3 @@ fun Server.addCreatePlanTool(planService: PlanService, coroutineScope: Coroutine
         }
     }
 }
-

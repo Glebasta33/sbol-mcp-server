@@ -1,4 +1,4 @@
-package prototype.presentation.ui.viewmodel
+package prototype.todo.ui.viewmodel
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -161,6 +161,35 @@ class TaskViewModel(
      */
     fun cancelTask(taskId: String) {
         updateTaskStatus(taskId, TaskStatus.CANCELLED)
+    }
+
+    /**
+     * Удалить план
+     *
+     * @param planId Идентификатор плана для удаления
+     */
+    fun deletePlan(planId: String) {
+        coroutineScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            when (val result = planService.deletePlan(planId)) {
+                is Result.Success -> {
+                    // Перезагрузить все планы после удаления
+                    loadAllPlans()
+                    
+                    // Если удален текущий план, загрузить новый активный план
+                    if (_currentPlan.value?.id == planId) {
+                        loadCurrentPlan()
+                    }
+                }
+                is Result.Error -> {
+                    _error.value = result.error.message
+                }
+            }
+
+            _isLoading.value = false
+        }
     }
 
     /**

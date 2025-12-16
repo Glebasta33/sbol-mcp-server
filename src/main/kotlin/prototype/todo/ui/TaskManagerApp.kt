@@ -1,9 +1,10 @@
-package prototype.presentation.ui
+package prototype.todo.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,8 +17,8 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import prototype.presentation.ui.components.TaskList
-import prototype.presentation.ui.viewmodel.TaskViewModel
+import prototype.todo.ui.components.TaskList
+import prototype.todo.ui.viewmodel.TaskViewModel
 import prototype.todo.domain.service.PlanService
 import java.time.format.DateTimeFormatter
 
@@ -47,6 +48,8 @@ fun TaskManagerWindow(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     var expandedPlanDropdown by remember { mutableStateOf(false) }
+    var planToDelete by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     MaterialTheme {
         Surface(
@@ -123,12 +126,32 @@ fun TaskManagerWindow(
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
-                                                    if (plan.isActive) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Check,
-                                                            contentDescription = "Активный план",
-                                                            tint = MaterialTheme.colorScheme.primary
-                                                        )
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        IconButton(
+                                                            onClick = {
+                                                                planToDelete = plan.id
+                                                                showDeleteConfirmation = true
+                                                                expandedPlanDropdown = false
+                                                            },
+                                                            modifier = Modifier.size(32.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Delete,
+                                                                contentDescription = "Удалить план",
+                                                                tint = MaterialTheme.colorScheme.error,
+                                                                modifier = Modifier.size(20.dp)
+                                                            )
+                                                        }
+                                                        if (plan.isActive) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Check,
+                                                                contentDescription = "Активный план",
+                                                                tint = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             },
@@ -267,6 +290,48 @@ fun TaskManagerWindow(
                         }
                     }
                 }
+            }
+            
+            // Диалог подтверждения удаления
+            if (showDeleteConfirmation && planToDelete != null) {
+                val planName = allPlans.find { it.id == planToDelete }?.name ?: "план"
+                
+                AlertDialog(
+                    onDismissRequest = {
+                        showDeleteConfirmation = false
+                        planToDelete = null
+                    },
+                    title = {
+                        Text("Удалить план?")
+                    },
+                    text = {
+                        Text("Вы уверены, что хотите удалить план \"$planName\"? Это действие нельзя отменить.")
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                planToDelete?.let { viewModel.deletePlan(it) }
+                                showDeleteConfirmation = false
+                                planToDelete = null
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Удалить")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteConfirmation = false
+                                planToDelete = null
+                            }
+                        ) {
+                            Text("Отмена")
+                        }
+                    }
+                )
             }
         }
     }

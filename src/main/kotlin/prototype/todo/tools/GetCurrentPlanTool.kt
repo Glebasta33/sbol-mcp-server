@@ -1,4 +1,4 @@
-package prototype.presentation.tools
+package prototype.todo.tools
 
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
