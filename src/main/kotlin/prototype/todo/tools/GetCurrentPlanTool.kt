@@ -4,6 +4,7 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import prototype.core.result.Result
 import prototype.todo.domain.service.PlanService
@@ -33,16 +34,35 @@ fun Server.addGetCurrentPlanTool(planService: PlanService) {
             - Если нет активного плана, вернется сообщение об этом
             - Активный план определяется по статусу "В работе" или самый новый по дате
             
-            Не требует аргументов.
+            Аргументы:
+            - include_details: (необязательный) boolean, включать ли расширенную информацию о задачах (по умолчанию true)
             
             Возвращает:
             - Полную информацию о текущем плане или сообщение об отсутствии активных планов
         """.trimIndent(),
         inputSchema = Tool.Input(
-            properties = buildJsonObject { },
+            properties = buildJsonObject {
+                put(
+                    "include_details",
+                    buildJsonObject {
+                        put("type", JsonPrimitive("boolean"))
+                        put("description", JsonPrimitive("Включать ли расширенную информацию о задачах"))
+                        put("default", JsonPrimitive(true))
+                    }
+                )
+            },
             required = emptyList()
         )
-    ) { _ ->
+    ) { request ->
+        // Извлекаем необязательный аргумент (по умолчанию true)
+        val includeDetails = request.arguments["include_details"]?.let {
+            try {
+                it.toString().toBooleanStrictOrNull() ?: true
+            } catch (e: Exception) {
+                true
+            }
+        } ?: true
+        
         when (val result = planService.getCurrentPlan()) {
             is Result.Success -> {
                 val plan = result.data
@@ -62,19 +82,46 @@ fun Server.addGetCurrentPlanTool(planService: PlanService) {
                         )
                     )
                 } else {
-                    val tasksInfo = plan.tasks.joinToString("\n") { task ->
-                        val statusIcon = when {
-                            task.isCompleted() -> "✓"
-                            task.isInProgress() -> "→"
-                            task.isCancelled() -> "✗"
-                            else -> " "
+                    val tasksInfo = if (includeDetails) {
+                        plan.tasks.joinToString("\n") { task ->
+                            val statusIcon = when {
+                                task.isCompleted() -> "✓"
+                                task.isInProgress() -> "→"
+                                task.isCancelled() -> "✗"
+                                else -> " "
+                            }
+                            "  $statusIcon [${if (task.isCompleted()) "x" else " "}] ${task.id}: ${task.title} (${task.status.value})"
                         }
-                        "  $statusIcon [${if (task.isCompleted()) "x" else " "}] ${task.id}: ${task.title} (${task.status.value})"
+                    } else {
+                        plan.tasks.joinToString("\n") { task ->
+                            "  [${if (task.isCompleted()) "x" else " "}] ${task.id}: ${task.title}"
+                        }
                     }
 
                     val inProgressTasks = plan.tasks.filter { it.isInProgress() }
-                    val inProgressInfo = if (inProgressTasks.isNotEmpty()) {
+                    val inProgressInfo = if (includeDetails && inProgressTasks.isNotEmpty()) {
                         "\n\nТекущие задачи в работе:\n" + inProgressTasks.joinToString("\n") { "  → ${it.id}: ${it.title}" }
+                    } else {
+                        ""
+                    }
+
+                    val detailsInfo = if (includeDetails) {
+                        """
+                        Создан: ${plan.createdAt}
+                        Статус: ${plan.status}
+                        Файл: ${plan.filePath}
+                        
+                        """.trimIndent()
+                    } else {
+                        ""
+                    }
+
+                    val helpInfo = if (includeDetails) {
+                        """
+                        
+                        Для обновления статуса задачи используй:
+                        update_task_status(task_id="<ID задачи>", status="<новый статус>")
+                        """.trimIndent()
                     } else {
                         ""
                     }
@@ -88,17 +135,11 @@ fun Server.addGetCurrentPlanTool(planService: PlanService) {
                                     ID: ${plan.id}
                                     Название: ${plan.name}
                                     Описание: ${plan.description}
-                                    Создан: ${plan.createdAt}
-                                    Статус: ${plan.status}
-                                    Файл: ${plan.filePath}
-                                    
+                                    $detailsInfo
                                     Прогресс: ${(plan.getProgress() * 100).toInt()}% (${plan.getCompletedTasksCount()}/${plan.getTotalTasksCount()} выполнено)
                                     
                                     Задачи:
-                                    $tasksInfo$inProgressInfo
-                                    
-                                    Для обновления статуса задачи используй:
-                                    update_task_status(task_id="<ID задачи>", status="<новый статус>")
+                                    $tasksInfo$inProgressInfo$helpInfo
                                 """.trimIndent()
                             )
                         )
