@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -47,10 +48,12 @@ fun TaskList(
             )
         }
     } else {
+        val lazyListState = rememberLazyListState()
         LazyColumn(
+            state = lazyListState,
             modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(tasks, key = { it.id }) { task ->
                 TaskItem(
@@ -83,8 +86,9 @@ private fun TaskItem(
 
     Card(
         modifier = Modifier
+            .padding(4.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(4.dp)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -93,9 +97,9 @@ private fun TaskItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Чекбокс
             Checkbox(
@@ -115,7 +119,7 @@ private fun TaskItem(
             // Название задачи
             Text(
                 text = task.title,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 textDecoration = if (task.isCompleted()) TextDecoration.LineThrough else null,
                 color = if (task.isCancelled()) {
                     MaterialTheme.colorScheme.onSurfaceVariant
