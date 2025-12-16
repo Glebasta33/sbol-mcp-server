@@ -337,59 +337,75 @@ fun TaskManagerWindow(
     }
 }
 
-// Флаг для отслеживания запущенного UI
-private var isUIRunning = false
+// Глобальное состояние для управления видимостью окна
+private object UIState {
+    var isRunning = false
+    var showWindow: ((Boolean) -> Unit)? = null
+}
 
 /**
  * Запустить Task Manager приложение в отдельном окне
  *
  * UI запускается в отдельном daemon потоке, чтобы не блокировать MCP сервер.
- * При закрытии окна завершается только UI поток, MCP сервер продолжает работать.
+ * При закрытии окна оно просто скрывается (но остаётся в памяти), MCP сервер продолжает работать.
+ * 
+ * ВАЖНО: Окно НЕ завершает application полностью - оно просто скрывается.
+ * Это предотвращает влияние на MCP сервер stdio транспорт.
  *
  * @param planService Сервис для работы с планами
  */
 fun launchTaskManagerApp(planService: PlanService) {
-    // Проверяем, не запущен ли уже UI
-    if (isUIRunning) {
-        println("Task Manager UI is already running")
+    // Если UI уже запущен, показываем окно
+    if (UIState.isRunning) {
+        println("Task Manager UI is already running, showing window...")
+        UIState.showWindow?.invoke(true)
         return
     }
     
-    isUIRunning = true
+    UIState.isRunning = true
+    println("Launching Task Manager UI in separate daemon thread...")
     
     // Запускаем UI в отдельном daemon потоке, чтобы не блокировать MCP сервер
     Thread {
-        try {
-            application {
-                val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
-                
+        application(exitProcessOnExit = false) {
+            // Состояние видимости окна
+            var isWindowVisible by mutableStateOf(true)
+            
+            // Регистрируем callback для управления видимостью извне
+            UIState.showWindow = { show -> isWindowVisible = show }
+            
+            val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
+            
+            // Окно остается в памяти, даже когда скрыто
+            if (isWindowVisible) {
                 Window(
                     onCloseRequest = {
-                        // Завершаем только UI application, MCP сервер продолжает работать
-                        exitApplication()
+                        // Просто скрываем окно, НЕ вызываем exitApplication()
+                        isWindowVisible = false
+                        println("Task Manager UI window hidden (MCP server still running)")
                     },
                     title = "Task Manager",
-                    state = windowState
+                    state = windowState,
+                    visible = isWindowVisible
                 ) {
                     TaskManagerWindow(
                         planService = planService,
                         onCloseRequest = {
-                            // Завершаем только UI application, MCP сервер продолжает работать
-                            exitApplication()
+                            // Просто скрываем окно, НЕ вызываем exitApplication()
+                            isWindowVisible = false
+                            println("Task Manager UI window hidden (MCP server still running)")
                         }
                     )
                 }
             }
-        } finally {
-            // Сбрасываем флаг при завершении UI
-            isUIRunning = false
-            println("Task Manager UI closed")
         }
+        // Этот код выполнится только при полном завершении application (никогда в daemon режиме)
+        UIState.isRunning = false
+        UIState.showWindow = null
+        println("Task Manager UI application terminated")
     }.apply {
         name = "TaskManagerUI"
         isDaemon = true
     }.start()
-    
-    println("Launching Task Manager UI in separate daemon thread...")
 }
 
