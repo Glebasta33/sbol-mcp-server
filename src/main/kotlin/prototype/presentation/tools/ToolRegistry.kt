@@ -11,7 +11,7 @@ import prototype.todo.domain.service.PlanService
  */
 class ToolRegistry(
     private val contextService: ContextService,
-    private val fileService: FileService
+    private val fileService: FileService,
     private val planService: PlanService? = null
 ) {
     /**

@@ -18,6 +18,7 @@ import prototype.data.service.ContextServiceImpl
 import prototype.data.service.FileServiceImpl
 import prototype.data.service.PlanFileWatcher
 import prototype.data.service.PlanServiceImpl
+import prototype.domain.service.FileService
 import prototype.presentation.tools.ToolRegistry
 import prototype.presentation.ui.launchTaskManagerApp
 
@@ -63,7 +64,7 @@ fun main() {
         println("PlanFileWatcher started and monitoring ${AppConfig.PLANS_BASE_PATH}")
 
         // Создать и настроить MCP сервер
-        val server: Server = createServer(contextService, planService)
+        val server: Server = createServer(contextService, planService, fileService)
         val stdioServerTransport = StdioServerTransport(
             System.`in`.asSource().buffered(),
             System.out.asSink().buffered()
@@ -96,7 +97,8 @@ fun main() {
  */
 fun createServer(
     contextService: ContextServiceImpl,
-    planService: PlanServiceImpl
+    planService: PlanServiceImpl,
+    fileService: FileService
 ): Server {
     val info = Implementation(
         AppConfig.SERVER_NAME,
@@ -113,7 +115,7 @@ fun createServer(
     val server = Server(info, options)
 
     // Регистрация всех tools через ToolRegistry
-    val toolRegistry = ToolRegistry(contextService, planService)
+    val toolRegistry = ToolRegistry(contextService, fileService, planService)
     toolRegistry.registerAllTools(server)
 
     return server
