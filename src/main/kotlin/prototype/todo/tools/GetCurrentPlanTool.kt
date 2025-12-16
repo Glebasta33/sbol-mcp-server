@@ -56,7 +56,7 @@ fun Server.addGetCurrentPlanTool(planService: PlanService, coroutineScope: Corou
                     }
                 )
             },
-            required = emptyList()
+            required = listOf("include_details")
         )
     ) { request ->
         // Извлекаем необязательный аргумент (по умолчанию true)

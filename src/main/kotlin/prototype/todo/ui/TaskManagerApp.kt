@@ -17,9 +17,9 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import prototype.todo.domain.service.PlanService
 import prototype.todo.ui.components.TaskList
 import prototype.todo.ui.viewmodel.TaskViewModel
-import prototype.todo.domain.service.PlanService
 import java.time.format.DateTimeFormatter
 
 /**
@@ -63,8 +63,9 @@ fun TaskManagerWindow(
                         Column {
                             Text(
                                 text = currentPlan?.name ?: "Task Manager",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2
                             )
                             currentPlan?.let { plan ->
                                 Text(
@@ -79,22 +80,12 @@ fun TaskManagerWindow(
                         // Plan selector dropdown
                         Box {
                             IconButton(onClick = { expandedPlanDropdown = true }) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = "Планы",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowDropDown,
-                                        contentDescription = "Выбрать план"
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Выбрать план"
+                                )
                             }
-                            
+
                             DropdownMenu(
                                 expanded = expandedPlanDropdown,
                                 onDismissRequest = { expandedPlanDropdown = false }
@@ -166,8 +157,8 @@ fun TaskManagerWindow(
                                 }
                             }
                         }
-                        
-                        IconButton(onClick = { 
+
+                        IconButton(onClick = {
                             viewModel.loadCurrentPlan()
                             viewModel.loadAllPlans()
                         }) {
@@ -202,7 +193,7 @@ fun TaskManagerWindow(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -240,6 +231,7 @@ fun TaskManagerWindow(
                             CircularProgressIndicator()
                         }
                     }
+
                     error != null && currentPlan == null -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -260,6 +252,7 @@ fun TaskManagerWindow(
                             }
                         }
                     }
+
                     currentPlan != null -> {
                         // Список задач
                         TaskList(
@@ -291,11 +284,11 @@ fun TaskManagerWindow(
                     }
                 }
             }
-            
+
             // Диалог подтверждения удаления
             if (showDeleteConfirmation && planToDelete != null) {
                 val planName = allPlans.find { it.id == planToDelete }?.name ?: "план"
-                
+
                 AlertDialog(
                     onDismissRequest = {
                         showDeleteConfirmation = false
@@ -348,7 +341,7 @@ private object UIState {
  *
  * UI запускается в отдельном daemon потоке, чтобы не блокировать MCP сервер.
  * При закрытии окна оно просто скрывается (но остаётся в памяти), MCP сервер продолжает работать.
- * 
+ *
  * ВАЖНО: Окно НЕ завершает application полностью - оно просто скрывается.
  * Это предотвращает влияние на MCP сервер stdio транспорт.
  *
@@ -370,12 +363,12 @@ fun launchTaskManagerApp(planService: PlanService) {
         application(exitProcessOnExit = false) {
             // Состояние видимости окна
             var isWindowVisible by mutableStateOf(true)
-            
+
             // Регистрируем callback для управления видимостью извне
             UIState.showWindow = { show -> isWindowVisible = show }
-            
+
             val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
-            
+
             // Окно остается в памяти, даже когда скрыто
             if (isWindowVisible) {
                 Window(
