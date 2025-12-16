@@ -13,6 +13,7 @@ import kotlinx.io.buffered
 import prototype.core.config.AppConfig
 import prototype.data.service.ContextServiceImpl
 import prototype.data.service.FileServiceImpl
+import prototype.data.service.PlanServiceImpl
 import prototype.presentation.tools.ToolRegistry
 
 /**
@@ -67,9 +68,10 @@ fun createServer(): Server {
     // Инициализация сервисов (простая DI без фреймворка)
     val fileService = FileServiceImpl()
     val contextService = ContextServiceImpl(fileService)
-    
+    val planService = PlanServiceImpl(fileService)
+
     // Регистрация всех tools через ToolRegistry
-    val toolRegistry = ToolRegistry(contextService, fileService)
+    val toolRegistry = ToolRegistry(contextService, planService)
     toolRegistry.registerAllTools(server)
 
     return server
