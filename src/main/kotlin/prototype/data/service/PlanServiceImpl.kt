@@ -41,6 +41,12 @@ class PlanServiceImpl(
                 }
             }
             
+            // Деактивировать все существующие планы перед созданием нового
+            val deactivateResult = deactivateAllPlans()
+            if (deactivateResult is Result.Error) {
+                return Result.failure("Failed to deactivate existing plans: ${deactivateResult.error}")
+            }
+            
             // Генерировать уникальный ID для плана
             val planId = generatePlanId()
             val timestamp = LocalDateTime.now()
@@ -65,6 +71,7 @@ class PlanServiceImpl(
                 description = description,
                 createdAt = timestamp,
                 status = "В работе",
+                isActive = true,
                 tasks = planTasks,
                 filePath = filePath
             )
@@ -98,16 +105,10 @@ class PlanServiceImpl(
                         return Result.success(null)
                     }
                     
-                    // Найти план со статусом "В работе"
-                    val activePlan = plans.find { it.status == "В работе" }
+                    // Найти план с isActive == true
+                    val activePlan = plans.find { it.isActive }
                     
-                    if (activePlan != null) {
-                        Result.success(activePlan)
-                    } else {
-                        // Если нет плана в работе, вернуть самый последний по дате
-                        val latestPlan = plans.maxByOrNull { it.createdAt }
-                        Result.success(latestPlan)
-                    }
+                    Result.success(activePlan)
                 }
                 is Result.Error -> Result.failure("Failed to get current plan: ${allPlansResult.error}")
             }
@@ -248,6 +249,46 @@ class PlanServiceImpl(
         }
     }
     
+    override fun setActivePlan(planId: String): Result<TaskPlan> {
+        try {
+            // Получить все планы
+            val allPlansResult = getAllPlans()
+            
+            return when (allPlansResult) {
+                is Result.Success -> {
+                    val allPlans = allPlansResult.data
+                    
+                    // Найти целевой план по ID
+                    val targetPlan = allPlans.find { it.id == planId }
+                        ?: return Result.failure("Plan with ID $planId not found")
+                    
+                    // Обновить статус isActive для всех планов
+                    val updatedPlans = allPlans.map { plan ->
+                        plan.copy(isActive = plan.id == planId)
+                    }
+                    
+                    // Записать обновленные планы в MD файлы
+                    updatedPlans.forEach { plan ->
+                        val mdContent = MarkdownPlanParser.generate(plan)
+                        val writeResult = fileService.writeFile(plan.filePath, mdContent)
+                        
+                        if (writeResult is Result.Error) {
+                            return Result.failure("Failed to update plan file ${plan.filePath}: ${writeResult.error}")
+                        }
+                    }
+                    
+                    // Вернуть активированный план
+                    val activatedPlan = updatedPlans.find { it.id == planId }!!
+                    Result.success(activatedPlan)
+                }
+                is Result.Error -> Result.failure("Failed to get plans: ${allPlansResult.error}")
+            }
+            
+        } catch (e: Exception) {
+            return Result.failure("Failed to set active plan: ${e.message}")
+        }
+    }
+    
     /**
      * Найти план по ID
      */
@@ -260,6 +301,35 @@ class PlanServiceImpl(
                 Result.success(plan)
             }
             is Result.Error -> Result.failure("Failed to find plan: ${allPlansResult.error}")
+        }
+    }
+    
+    /**
+     * Деактивировать все существующие планы (установить isActive = false)
+     */
+    private fun deactivateAllPlans(): Result<Unit> {
+        val allPlansResult = getAllPlans()
+        
+        return when (allPlansResult) {
+            is Result.Success -> {
+                val allPlans = allPlansResult.data
+                
+                // Обновить только те планы, которые активны
+                val activePlans = allPlans.filter { it.isActive }
+                
+                activePlans.forEach { plan ->
+                    val deactivatedPlan = plan.copy(isActive = false)
+                    val mdContent = MarkdownPlanParser.generate(deactivatedPlan)
+                    val writeResult = fileService.writeFile(plan.filePath, mdContent)
+                    
+                    if (writeResult is Result.Error) {
+                        return Result.failure("Failed to deactivate plan ${plan.id}: ${writeResult.error}")
+                    }
+                }
+                
+                Result.success(Unit)
+            }
+            is Result.Error -> Result.failure("Failed to get plans: ${allPlansResult.error}")
         }
     }
     

@@ -18,6 +18,7 @@ import java.time.format.DateTimeParseException
  * **Создан:** 2025-12-16 15:30:00
  * **ID:** plan-abc123
  * **Статус:** В работе
+ * **Active:** true
  *
  * ## Описание
  * Краткое описание плана и его целей.
@@ -34,6 +35,7 @@ object MarkdownPlanParser {
     private val createdAtRegex = Regex("""\*\*Создан:\*\*\s+(.+)$""")
     private val idRegex = Regex("""\*\*ID:\*\*\s+(.+)$""")
     private val statusRegex = Regex("""\*\*Статус:\*\*\s+(.+)$""")
+    private val activeRegex = Regex("""\*\*Active:\*\*\s+(.+)$""")
     private val descriptionHeaderRegex = Regex("""^##\s+Описание$""")
     private val tasksHeaderRegex = Regex("""^##\s+Задачи$""")
     private val taskRegex = Regex("""^-\s+\[([ x])\]\s+([^:]+):\s+(.+)$""")
@@ -53,6 +55,7 @@ object MarkdownPlanParser {
             val createdAt = extractCreatedAt(lines)
             val id = extractId(lines)
             val status = extractStatus(lines)
+            val isActive = extractActive(lines)
             val description = extractDescription(lines)
             val tasks = extractTasks(lines)
             
@@ -62,6 +65,7 @@ object MarkdownPlanParser {
                 description = description,
                 createdAt = createdAt,
                 status = status,
+                isActive = isActive,
                 tasks = tasks,
                 filePath = filePath
             )
@@ -88,6 +92,7 @@ object MarkdownPlanParser {
             appendLine("**Создан:** ${plan.createdAt.format(dateTimeFormatter)}")
             appendLine("**ID:** ${plan.id}")
             appendLine("**Статус:** ${plan.status}")
+            appendLine("**Active:** ${plan.isActive}")
             appendLine()
             
             // Описание
@@ -148,6 +153,17 @@ object MarkdownPlanParser {
             ?: throw IllegalArgumentException("Failed to extract plan status")
         
         return match.groupValues[1].trim()
+    }
+    
+    private fun extractActive(lines: List<String>): Boolean {
+        val line = lines.find { activeRegex.matches(it) }
+            ?: return false // Обратная совместимость: если поле отсутствует, возвращаем false
+        
+        val match = activeRegex.find(line)
+            ?: return false
+        
+        val activeString = match.groupValues[1].trim()
+        return activeString.equals("true", ignoreCase = true)
     }
     
     private fun extractDescription(lines: List<String>): String {

@@ -58,5 +58,13 @@ interface PlanService {
      * @return Result с успехом или ошибкой
      */
     fun deletePlan(planId: String): Result<Unit>
+    
+    /**
+     * Установить активный план
+     *
+     * @param planId Идентификатор плана, который нужно сделать активным
+     * @return Result с активированным планом или ошибкой
+     */
+    fun setActivePlan(planId: String): Result<TaskPlan>
 }
 

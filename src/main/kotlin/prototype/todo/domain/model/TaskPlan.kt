@@ -10,6 +10,7 @@ import java.time.LocalDateTime
  * @property description Описание плана и его целей
  * @property createdAt Дата и время создания плана
  * @property status Статус плана (например, "В работе", "Завершен")
+ * @property isActive Флаг активного плана (только один план может быть активным одновременно)
  * @property tasks Список задач в плане
  * @property filePath Путь к MD файлу плана
  */
@@ -19,6 +20,7 @@ data class TaskPlan(
     val description: String,
     val createdAt: LocalDateTime,
     val status: String,
+    val isActive: Boolean,
     val tasks: List<Task>,
     val filePath: String
 ) {
