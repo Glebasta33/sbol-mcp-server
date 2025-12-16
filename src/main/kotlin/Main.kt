@@ -1,8 +1,14 @@
 package prototype
 
+import io.modelcontextprotocol.kotlin.sdk.GetPromptResult
 import io.modelcontextprotocol.kotlin.sdk.Implementation
+import io.modelcontextprotocol.kotlin.sdk.Prompt
+import io.modelcontextprotocol.kotlin.sdk.PromptArgument
+import io.modelcontextprotocol.kotlin.sdk.PromptMessage
 import io.modelcontextprotocol.kotlin.sdk.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import io.modelcontextprotocol.kotlin.sdk.Role
+import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
 import kotlinx.coroutines.Job
@@ -45,6 +51,7 @@ fun createServer(): Server {
 
     val options = ServerOptions(
         capabilities = ServerCapabilities(
+            prompts = ServerCapabilities.Prompts(listChanged = true),
             tools = ServerCapabilities.Tools(true),
         )
     )
@@ -53,6 +60,7 @@ fun createServer(): Server {
 
     server.addHelloWorldTool()
     server.addSystemInfoTool()
+    server.testArgumentsTool()
 
     return server
 }

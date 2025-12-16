@@ -1,8 +1,10 @@
 package prototype
 
 import io.ktor.http.parameters
+import io.modelcontextprotocol.kotlin.sdk.CallToolRequest
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
+import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -10,13 +12,26 @@ import kotlinx.serialization.json.*
 
 fun Server.addHelloWorldTool() {
     addTool(
+        inputSchema = Tool.Input(
+            properties = buildJsonObject {
+                put(
+                    "название функции",
+                    buildJsonObject {
+                        put("type", JsonPrimitive("string"))
+                        put("description", JsonPrimitive("любой текст"))
+                    },
+                )
+            },
+            required = listOf("название функции"),
+        ),
         name = "hello",
         description = "Returns Hello World message from Kotlin MCP server"
-    ) { _ ->
+    ) { request ->
+
         CallToolResult(
             content = listOf(
                 TextContent(
-                    text = "Hello World from SBOL MCP Server ! ^_^"
+                    text = "Hello World from SBOL MCP Server ! ^_^" + " лвлвда " +  request.arguments.toString().uppercase()
                 )
             )
         )
@@ -59,6 +74,35 @@ fun Server.addSystemInfoTool() {
             content = listOf(
                 TextContent(
                     text = info
+                )
+            )
+        )
+    }
+}
+
+
+fun Server.testArgumentsTool() {
+    addTool(
+        inputSchema = Tool.Input(
+            properties = buildJsonObject {
+                put(
+                    "название функции",
+                    buildJsonObject {
+                        put("type", JsonPrimitive("string"))
+                        put("description", JsonPrimitive("любой текст"))
+                    },
+                )
+            },
+            required = listOf("название функции"),
+        ),
+        name = "hello",
+        description = "Returns Hello World message from Kotlin MCP server"
+    ) { request ->
+
+        CallToolResult(
+            content = listOf(
+                TextContent(
+                    text = "Hello World from SBOL MCP Server ! ^_^" +  request.arguments.toString().uppercase()
                 )
             )
         )
