@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.0"
+    kotlin("plugin.serialization") version "2.2.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -10,25 +12,31 @@ repositories {
     mavenCentral()
 }
 
+tasks.shadowJar {
+    archiveFileName.set("my-app.jar") // Имя вашего JAR
+    manifest {
+        attributes["Main-Class"] = "com.yourpackage.MainKt" // Полный путь к классу с `fun main()`
+    }
+}
 val mcpVersion = "0.8.1"
+val ktorVersion = "3.2.3"
+
 dependencies {
-    // основной Kotlin MCP серверный SDK
-    implementation("io.modelcontextprotocol:kotlin-sdk-server:$mcpVersion")
-    
-    // kotlinx.io для работы со STDIO
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.8.2")
-    
-    // Ktor streams для работы с InputStream (нужно для asInput())
-    implementation("io.ktor:ktor-utils:3.0.2")
+    implementation("io.modelcontextprotocol:kotlin-sdk:0.6.0")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("org.slf4j:slf4j-nop:2.0.9")
 
     testImplementation(kotlin("test"))
+    testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    // Используем Java 17 (глобальная версия на машине)
     jvmToolchain(17)
 }
 
