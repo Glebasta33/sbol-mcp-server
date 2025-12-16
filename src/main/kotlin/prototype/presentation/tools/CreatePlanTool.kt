@@ -4,18 +4,27 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import prototype.core.result.Result
+import prototype.presentation.ui.launchTaskManagerApp
 import prototype.todo.domain.service.PlanService
+import java.util.concurrent.atomic.AtomicBoolean
+
+/**
+ * Глобальный флаг для отслеживания запуска UI
+ */
+private val isUILaunched = AtomicBoolean(false)
 
 /**
  * Tool для создания нового плана с задачами
  */
-fun Server.addCreatePlanTool(planService: PlanService) {
+fun Server.addCreatePlanTool(planService: PlanService, coroutineScope: CoroutineScope) {
     addTool(
         name = "create_plan",
         description = """
@@ -102,6 +111,14 @@ fun Server.addCreatePlanTool(planService: PlanService) {
                 val plan = result.data
                 val tasksInfo = plan.tasks.joinToString("\n") { task ->
                     "  - [${if (task.isCompleted()) "x" else " "}] ${task.id}: ${task.title} (${task.status.value})"
+                }
+                
+                // Запустить UI если это первый план
+                if (isUILaunched.compareAndSet(false, true)) {
+                    coroutineScope.launch {
+                        println("Launching Task Manager UI after first plan creation...")
+                        launchTaskManagerApp(planService)
+                    }
                 }
                 
                 CallToolResult(

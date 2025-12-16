@@ -38,15 +38,13 @@ import prototype.presentation.ui.launchTaskManagerApp
  * - Система управления задачами с поддержкой MD файлов
  * - Compose Desktop UI для визуализации задач
  * - Автоматическая синхронизация между MD файлами и UI
+ * - Автоматический запуск UI при создании первого плана
  *
  * Сборка:
  * ./gradlew installDist
  * 
  * Запуск:
  * ./build/install/sbol-mcp-server/bin/sbol-mcp-server
- *
- * Переменные окружения:
- * - LAUNCH_UI=true - автоматически запустить Task Manager UI при старте
  */
 fun main() {
     runBlocking {
@@ -64,20 +62,11 @@ fun main() {
         println("PlanFileWatcher started and monitoring ${AppConfig.PLANS_BASE_PATH}")
 
         // Создать и настроить MCP сервер
-        val server: Server = createServer(contextService, planService, fileService)
+        val server: Server = createServer(contextService, planService, fileService, coroutineScope)
         val stdioServerTransport = StdioServerTransport(
             System.`in`.asSource().buffered(),
             System.out.asSink().buffered()
         )
-
-        // Опционально запустить UI при старте (если установлена переменная окружения)
-        val shouldLaunchUI = System.getenv("LAUNCH_UI")?.toBoolean() ?: false
-        if (shouldLaunchUI) {
-            coroutineScope.launch {
-                println("Launching Task Manager UI...")
-                launchTaskManagerApp(planService)
-            }
-        }
 
         // Подключить сервер и ожидать завершения
         server.onClose {
@@ -94,11 +83,14 @@ fun main() {
  *
  * @param contextService Сервис для работы с контекстом
  * @param planService Сервис для работы с планами задач
+ * @param fileService Сервис для работы с файлами
+ * @param coroutineScope CoroutineScope для асинхронных операций
  */
 fun createServer(
     contextService: ContextServiceImpl,
     planService: PlanServiceImpl,
-    fileService: FileService
+    fileService: FileService,
+    coroutineScope: CoroutineScope
 ): Server {
     val info = Implementation(
         AppConfig.SERVER_NAME,
@@ -115,7 +107,7 @@ fun createServer(
     val server = Server(info, options)
 
     // Регистрация всех tools через ToolRegistry
-    val toolRegistry = ToolRegistry(contextService, fileService, planService)
+    val toolRegistry = ToolRegistry(contextService, fileService, planService, coroutineScope)
     toolRegistry.registerAllTools(server)
 
     return server

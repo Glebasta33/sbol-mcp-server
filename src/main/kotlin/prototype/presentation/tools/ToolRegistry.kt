@@ -1,6 +1,7 @@
 package prototype.presentation.tools
 
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import kotlinx.coroutines.CoroutineScope
 import prototype.domain.service.ContextService
 import prototype.domain.service.FileService
 import prototype.todo.domain.service.PlanService
@@ -12,7 +13,8 @@ import prototype.todo.domain.service.PlanService
 class ToolRegistry(
     private val contextService: ContextService,
     private val fileService: FileService,
-    private val planService: PlanService? = null
+    private val planService: PlanService? = null,
+    private val coroutineScope: CoroutineScope
 ) {
     /**
      * Регистрирует все tools в сервере
@@ -25,7 +27,7 @@ class ToolRegistry(
 
         // Plan management tools
         planService?.let { service ->
-            server.addCreatePlanTool(service)
+            server.addCreatePlanTool(service, coroutineScope)
             server.addUpdateTaskStatusTool(service)
             server.addGetCurrentPlanTool(service)
         }
