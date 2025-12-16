@@ -6,6 +6,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,8 +52,15 @@ fun TaskManagerWindow(
     var expandedPlanDropdown by remember { mutableStateOf(false) }
     var planToDelete by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var isDarkTheme by remember { mutableStateOf(true) }
 
-    MaterialTheme {
+    val colorScheme = if (isDarkTheme) {
+        darkColorScheme()
+    } else {
+        lightColorScheme()
+    }
+
+    MaterialTheme(colorScheme = colorScheme) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
@@ -77,6 +86,14 @@ fun TaskManagerWindow(
                         }
                     },
                     actions = {
+                        // Переключатель темы
+                        IconButton(onClick = { isDarkTheme = !isDarkTheme }) {
+                            Icon(
+                                imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = if (isDarkTheme) "Светлая тема" else "Тёмная тема"
+                            )
+                        }
+                        
                         // Plan selector dropdown
                         Box {
                             IconButton(onClick = { expandedPlanDropdown = true }) {

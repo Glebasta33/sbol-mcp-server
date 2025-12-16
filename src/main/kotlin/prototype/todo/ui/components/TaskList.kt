@@ -36,6 +36,7 @@ fun TaskList(
     onTaskStatusChange: (String, TaskStatus) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val lazyListState = rememberLazyListState()
     if (tasks.isEmpty()) {
         Box(
             modifier = modifier.fillMaxSize(),
@@ -48,10 +49,9 @@ fun TaskList(
             )
         }
     } else {
-        val lazyListState = rememberLazyListState()
         LazyColumn(
             state = lazyListState,
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier.fillMaxWidth(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
