@@ -4,15 +4,24 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import prototype.core.result.Result
 import prototype.todo.domain.service.PlanService
+import prototype.todo.ui.launchTaskManagerApp
+import java.util.concurrent.atomic.AtomicBoolean
+
+/**
+ * Глобальный флаг для отслеживания запуска UI из get_current_plan
+ */
+private val isUILaunchedFromGetPlan = AtomicBoolean(false)
 
 /**
  * Tool для получения текущего активного плана
  */
-fun Server.addGetCurrentPlanTool(planService: PlanService) {
+fun Server.addGetCurrentPlanTool(planService: PlanService, coroutineScope: CoroutineScope) {
     addTool(
         name = "get_current_plan",
         description = """
@@ -124,6 +133,14 @@ fun Server.addGetCurrentPlanTool(planService: PlanService) {
                         """.trimIndent()
                     } else {
                         ""
+                    }
+
+                    // Запустить UI если это первый запрос текущего плана
+                    if (isUILaunchedFromGetPlan.compareAndSet(false, true)) {
+                        coroutineScope.launch {
+                            println("Launching Task Manager UI after getting current plan...")
+                            launchTaskManagerApp(planService)
+                        }
                     }
 
                     CallToolResult(

@@ -32,7 +32,7 @@ class ToolRegistry(
         planService?.let { service ->
             server.addCreatePlanTool(service, coroutineScope)
             server.addUpdateTaskStatusTool(service)
-            server.addGetCurrentPlanTool(service)
+            server.addGetCurrentPlanTool(service, coroutineScope)
         }
     }
 }
