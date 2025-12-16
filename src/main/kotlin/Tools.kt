@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 
 fun Server.addHelloWorldTool() {
     addTool(
@@ -59,14 +60,29 @@ fun Server.testArgumentsTool() {
         name = "hello",
         description = "Returns Hello World message from Kotlin MCP server"
     ) { request ->
-
+        val data = MdFiles.DATA.readMdFile()
         CallToolResult(
             content = listOf(
                 TextContent(
-                    text = "Hello World from SBOL MCP Server ! ^_^" +  request.arguments.toString().uppercase()
+                    text = "Hello World from SBOL MCP Server ! ^_^" + data.take(100)
                 )
             )
         )
     }
 }
+
+private fun MdFiles.readMdFile():String {
+    return try {
+        File(path).readText()
+    } catch (e : Exception) {
+        "No such file"
+    }
+}
+
+enum class MdFiles(val path:String){
+    TEST(path = "sbol-mcp-server/src/main/kotlin/prompts/test.md"),
+    DATA(path = "sbol-mcp-server/src/main/kotlin/prompts/data-domain-layer.md"),
+    VIEW("sbol-mcp-server/src/main/kotlin/prompts/view.md")
+}
+
 
