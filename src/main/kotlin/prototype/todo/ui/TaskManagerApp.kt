@@ -337,25 +337,59 @@ fun TaskManagerWindow(
     }
 }
 
+// Флаг для отслеживания запущенного UI
+private var isUIRunning = false
+
 /**
  * Запустить Task Manager приложение в отдельном окне
+ *
+ * UI запускается в отдельном daemon потоке, чтобы не блокировать MCP сервер.
+ * При закрытии окна завершается только UI поток, MCP сервер продолжает работать.
  *
  * @param planService Сервис для работы с планами
  */
 fun launchTaskManagerApp(planService: PlanService) {
-    application {
-        val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
-        
-        Window(
-            onCloseRequest = ::exitApplication,
-            title = "Task Manager",
-            state = windowState
-        ) {
-            TaskManagerWindow(
-                planService = planService,
-                onCloseRequest = ::exitApplication
-            )
-        }
+    // Проверяем, не запущен ли уже UI
+    if (isUIRunning) {
+        println("Task Manager UI is already running")
+        return
     }
+    
+    isUIRunning = true
+    
+    // Запускаем UI в отдельном daemon потоке, чтобы не блокировать MCP сервер
+    Thread {
+        try {
+            application {
+                val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
+                
+                Window(
+                    onCloseRequest = {
+                        // Завершаем только UI application, MCP сервер продолжает работать
+                        exitApplication()
+                    },
+                    title = "Task Manager",
+                    state = windowState
+                ) {
+                    TaskManagerWindow(
+                        planService = planService,
+                        onCloseRequest = {
+                            // Завершаем только UI application, MCP сервер продолжает работать
+                            exitApplication()
+                        }
+                    )
+                }
+            }
+        } finally {
+            // Сбрасываем флаг при завершении UI
+            isUIRunning = false
+            println("Task Manager UI closed")
+        }
+    }.apply {
+        name = "TaskManagerUI"
+        isDaemon = true
+    }.start()
+    
+    println("Launching Task Manager UI in separate daemon thread...")
 }
 
