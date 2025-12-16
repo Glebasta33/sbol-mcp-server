@@ -1,4 +1,4 @@
-package prototype
+package prototype.presentation.tools
 
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
@@ -6,11 +6,13 @@ import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 
-fun Server.addHelloWorldTool() {
+/**
+ * Tool для приветствия пользователя
+ */
+fun Server.addHelloTool() {
     addTool(
         name = "hello",
         description = """
