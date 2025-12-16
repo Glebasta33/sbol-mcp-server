@@ -2,6 +2,8 @@ package prototype.presentation.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,8 +43,10 @@ fun TaskManagerWindow(
     }
 
     val currentPlan by viewModel.currentPlan.collectAsState()
+    val allPlans by viewModel.allPlans.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    var expandedPlanDropdown by remember { mutableStateOf(false) }
 
     MaterialTheme {
         Surface(
@@ -69,7 +73,81 @@ fun TaskManagerWindow(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { viewModel.loadCurrentPlan() }) {
+                        // Plan selector dropdown
+                        Box {
+                            IconButton(onClick = { expandedPlanDropdown = true }) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = "Планы",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Выбрать план"
+                                    )
+                                }
+                            }
+                            
+                            DropdownMenu(
+                                expanded = expandedPlanDropdown,
+                                onDismissRequest = { expandedPlanDropdown = false }
+                            ) {
+                                if (allPlans.isEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text("Нет доступных планов") },
+                                        onClick = { },
+                                        enabled = false
+                                    )
+                                } else {
+                                    allPlans.forEach { plan ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Column(modifier = Modifier.weight(1f)) {
+                                                        Text(
+                                                            text = plan.name,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            fontWeight = if (plan.isActive) FontWeight.Bold else FontWeight.Normal
+                                                        )
+                                                        Text(
+                                                            text = "${plan.getCompletedTasksCount()}/${plan.getTotalTasksCount()} • ${plan.status}",
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                    }
+                                                    if (plan.isActive) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = "Активный план",
+                                                            tint = MaterialTheme.colorScheme.primary
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            onClick = {
+                                                if (!plan.isActive) {
+                                                    viewModel.setActivePlan(plan.id)
+                                                }
+                                                expandedPlanDropdown = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        
+                        IconButton(onClick = { 
+                            viewModel.loadCurrentPlan()
+                            viewModel.loadAllPlans()
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = "Обновить"

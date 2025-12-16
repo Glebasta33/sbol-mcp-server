@@ -23,6 +23,9 @@ class TaskViewModel(
     private val _currentPlan = MutableStateFlow<TaskPlan?>(null)
     val currentPlan: StateFlow<TaskPlan?> = _currentPlan.asStateFlow()
 
+    private val _allPlans = MutableStateFlow<List<TaskPlan>>(emptyList())
+    val allPlans: StateFlow<List<TaskPlan>> = _allPlans.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -31,6 +34,7 @@ class TaskViewModel(
 
     init {
         loadCurrentPlan()
+        loadAllPlans()
     }
 
     /**
@@ -47,6 +51,46 @@ class TaskViewModel(
                     if (result.data == null) {
                         _error.value = "Нет активных планов"
                     }
+                }
+                is Result.Error -> {
+                    _error.value = result.error.message
+                }
+            }
+
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Загрузить все планы
+     */
+    fun loadAllPlans() {
+        coroutineScope.launch {
+            when (val result = planService.getAllPlans()) {
+                is Result.Success -> {
+                    _allPlans.value = result.data
+                }
+                is Result.Error -> {
+                    _error.value = result.error.message
+                }
+            }
+        }
+    }
+
+    /**
+     * Установить активный план
+     *
+     * @param planId Идентификатор плана
+     */
+    fun setActivePlan(planId: String) {
+        coroutineScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            when (val result = planService.setActivePlan(planId)) {
+                is Result.Success -> {
+                    _currentPlan.value = result.data
+                    loadAllPlans()
                 }
                 is Result.Error -> {
                     _error.value = result.error.message

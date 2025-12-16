@@ -20,7 +20,6 @@ import prototype.data.service.PlanFileWatcher
 import prototype.data.service.PlanServiceImpl
 import prototype.domain.service.FileService
 import prototype.presentation.tools.ToolRegistry
-import prototype.presentation.ui.launchTaskManagerApp
 
 /**
  * MCP Server на основе Kotlin SDK
