@@ -35,5 +35,20 @@ class FileServiceImpl : FileService {
         val fullPath = "${AppConfig.PROMPTS_BASE_PATH}/$fileName"
         return readFile(fullPath)
     }
+
+    override fun readPromptFile(mdFile: MdFiles): Result<String> {
+        return readFile(mdFile.path)
+    }
+
+    override fun MdFiles.readPromptFileEx(): Result<String> {
+        return readFile(path)
+    }
+
+}
+
+enum class MdFiles(val path:String){
+    TEST(path = "sbol-mcp-server/src/main/kotlin/prompts/test.md"),
+    DATA(path = "sbol-mcp-server/src/main/kotlin/prompts/data-domain-layer.md"),
+    VIEW("sbol-mcp-server/src/main/kotlin/prompts/view.md")
 }
 

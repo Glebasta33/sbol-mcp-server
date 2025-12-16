@@ -1,6 +1,7 @@
 package prototype.domain.service
 
 import prototype.core.result.Result
+import prototype.data.service.MdFiles
 
 /**
  * Интерфейс сервиса для работы с файлами
@@ -26,5 +27,9 @@ interface FileService {
      * @return Result с содержимым файла или ошибкой
      */
     fun readPromptFile(fileName: String): Result<String>
+
+    fun readPromptFile(mdFile: MdFiles): Result<String>
+
+    fun MdFiles.readPromptFileEx(): Result<String>
 }
 

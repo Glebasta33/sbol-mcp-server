@@ -4,10 +4,15 @@ import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import kotlinx.serialization.json.JsonNull.content
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import prototype.data.service.MdFiles
+import prototype.domain.service.FileService
 import java.io.File
+import kotlin.getOrThrow
 
 /**
  * Tool для приветствия пользователя
@@ -45,7 +50,7 @@ fun Server.addHelloTool() {
 }
 
 
-fun Server.testArgumentsTool() {
+fun Server.testArgumentsTool(fileService: FileService) {
     addTool(
         inputSchema = Tool.Input(
             properties = buildJsonObject {
@@ -62,7 +67,8 @@ fun Server.testArgumentsTool() {
         name = "hello",
         description = "Returns Hello World message from Kotlin MCP server"
     ) { request ->
-        val data = MdFiles.DATA.readMdFile()
+        var data = ""
+        with(fileService) { MdFiles.DATA.readPromptFileEx() }.onSuccess { data = it }
         CallToolResult(
             content = listOf(
                 TextContent(
@@ -72,19 +78,3 @@ fun Server.testArgumentsTool() {
         )
     }
 }
-
-private fun MdFiles.readMdFile():String {
-    return try {
-        File(path).readText()
-    } catch (e : Exception) {
-        "No such file"
-    }
-}
-
-enum class MdFiles(val path:String){
-    TEST(path = "sbol-mcp-server/src/main/kotlin/prompts/test.md"),
-    DATA(path = "sbol-mcp-server/src/main/kotlin/prompts/data-domain-layer.md"),
-    VIEW("sbol-mcp-server/src/main/kotlin/prompts/view.md")
-}
-
-

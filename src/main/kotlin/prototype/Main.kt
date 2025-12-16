@@ -69,7 +69,7 @@ fun createServer(): Server {
     val contextService = ContextServiceImpl(fileService)
     
     // Регистрация всех tools через ToolRegistry
-    val toolRegistry = ToolRegistry(contextService)
+    val toolRegistry = ToolRegistry(contextService, fileService)
     toolRegistry.registerAllTools(server)
 
     return server
