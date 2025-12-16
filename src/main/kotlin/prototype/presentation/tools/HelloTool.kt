@@ -1,4 +1,4 @@
-package prototype
+package prototype.presentation.tools
 
 import io.modelcontextprotocol.kotlin.sdk.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.TextContent
@@ -6,10 +6,12 @@ import io.modelcontextprotocol.kotlin.sdk.Tool
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-fun Server.addHelloWorldTool() {
+/**
+ * Tool для приветствия пользователя
+ */
+fun Server.addHelloTool() {
     addTool(
         name = "hello",
         description = """
@@ -35,35 +37,6 @@ fun Server.addHelloWorldTool() {
             content = listOf(
                 TextContent(
                     text = " Привет, $helloArg! ^_^"
-                )
-            )
-        )
-    }
-}
-
-
-fun Server.testArgumentsTool() {
-    addTool(
-        inputSchema = Tool.Input(
-            properties = buildJsonObject {
-                put(
-                    "название функции",
-                    buildJsonObject {
-                        put("type", JsonPrimitive("string"))
-                        put("description", JsonPrimitive("любой текст"))
-                    },
-                )
-            },
-            required = listOf("название функции"),
-        ),
-        name = "hello",
-        description = "Returns Hello World message from Kotlin MCP server"
-    ) { request ->
-
-        CallToolResult(
-            content = listOf(
-                TextContent(
-                    text = "Hello World from SBOL MCP Server ! ^_^" +  request.arguments.toString().uppercase()
                 )
             )
         )
