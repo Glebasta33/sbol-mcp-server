@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Глобальный флаг для отслеживания запуска UI
  */
-private val isUILaunched = AtomicBoolean(false)
+val isUILaunched = AtomicBoolean(false)
 
 /**
  * Tool для создания нового плана с задачами

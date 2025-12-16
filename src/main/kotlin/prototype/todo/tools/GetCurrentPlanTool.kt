@@ -13,10 +13,6 @@ import prototype.todo.domain.service.PlanService
 import prototype.todo.ui.launchTaskManagerApp
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * Глобальный флаг для отслеживания запуска UI из get_current_plan
- */
-private val isUILaunchedFromGetPlan = AtomicBoolean(false)
 
 /**
  * Tool для получения текущего активного плана
@@ -136,7 +132,7 @@ fun Server.addGetCurrentPlanTool(planService: PlanService, coroutineScope: Corou
                     }
 
                     // Запустить UI если это первый запрос текущего плана
-                    if (isUILaunchedFromGetPlan.compareAndSet(false, true)) {
+                    if (isUILaunched.compareAndSet(false, true)) {
                         coroutineScope.launch {
                             println("Launching Task Manager UI after getting current plan...")
                             launchTaskManagerApp(planService)
