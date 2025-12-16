@@ -27,8 +27,93 @@ class FileServiceImpl : FileService {
         }
     }
     
+    override fun writeFile(path: String, content: String): Result<Unit> {
+        return try {
+            val file = File(path)
+            val parentDir = file.parentFile
+            
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs()
+            }
+            
+            file.writeText(content, Charsets.UTF_8)
+            Result.Success(Unit)
+            
+        } catch (e: Exception) {
+            Result.Error(AppError.FileWriteError(path, e))
+        }
+    }
+    
     override fun fileExists(path: String): Boolean {
-        return File(path).exists()
+        return File(path).exists() && File(path).isFile
+    }
+    
+    override fun directoryExists(path: String): Boolean {
+        return File(path).exists() && File(path).isDirectory
+    }
+    
+    override fun createDirectory(path: String): Result<Unit> {
+        return try {
+            val dir = File(path)
+            
+            if (dir.exists()) {
+                if (dir.isDirectory) {
+                    return Result.Success(Unit)
+                } else {
+                    return Result.failure("Path exists but is not a directory: $path")
+                }
+            }
+            
+            val created = dir.mkdirs()
+            if (created) {
+                Result.Success(Unit)
+            } else {
+                Result.failure("Failed to create directory: $path")
+            }
+            
+        } catch (e: Exception) {
+            Result.failure("Failed to create directory: ${e.message}")
+        }
+    }
+    
+    override fun listFiles(path: String): Result<List<String>> {
+        return try {
+            val dir = File(path)
+            
+            if (!dir.exists()) {
+                return Result.failure("Directory does not exist: $path")
+            }
+            
+            if (!dir.isDirectory) {
+                return Result.failure("Path is not a directory: $path")
+            }
+            
+            val files = dir.listFiles()?.map { it.absolutePath } ?: emptyList()
+            Result.Success(files)
+            
+        } catch (e: Exception) {
+            Result.failure("Failed to list files: ${e.message}")
+        }
+    }
+    
+    override fun deleteFile(path: String): Result<Unit> {
+        return try {
+            val file = File(path)
+            
+            if (!file.exists()) {
+                return Result.failure("File does not exist: $path")
+            }
+            
+            val deleted = file.delete()
+            if (deleted) {
+                Result.Success(Unit)
+            } else {
+                Result.failure("Failed to delete file: $path")
+            }
+            
+        } catch (e: Exception) {
+            Result.failure("Failed to delete file: ${e.message}")
+        }
     }
     
     override fun readPromptFile(fileName: String): Result<String> {

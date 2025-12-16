@@ -21,6 +21,14 @@ sealed class Result<out T> {
         if (this is Error) action(error)
         return this
     }
+    
+    companion object {
+        fun <T> success(data: T): Result<T> = Success(data)
+        
+        fun <T> failure(message: String): Result<T> = Error(AppError.Generic(message))
+        
+        fun <T> failure(error: AppError): Result<T> = Error(error)
+    }
 }
 
 /**
@@ -29,7 +37,9 @@ sealed class Result<out T> {
 sealed class AppError(val message: String, val cause: Throwable? = null) {
     class FileNotFound(path: String) : AppError("Файл не найден: $path")
     class FileReadError(path: String, cause: Throwable) : AppError("Ошибка чтения файла: $path", cause)
+    class FileWriteError(path: String, cause: Throwable) : AppError("Ошибка записи файла: $path", cause)
     class InvalidArgument(argumentName: String, reason: String) : AppError("Некорректный аргумент '$argumentName': $reason")
+    class Generic(message: String) : AppError(message)
     class Unknown(cause: Throwable) : AppError("Неизвестная ошибка: ${cause.message}", cause)
 }
 

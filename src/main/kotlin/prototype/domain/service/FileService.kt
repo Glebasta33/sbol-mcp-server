@@ -15,11 +15,47 @@ interface FileService {
     fun readFile(path: String): Result<String>
     
     /**
+     * Записывает содержимое в файл
+     * @param path путь к файлу
+     * @param content содержимое для записи
+     * @return Result с успехом или ошибкой
+     */
+    fun writeFile(path: String, content: String): Result<Unit>
+    
+    /**
      * Проверяет существование файла
      * @param path путь к файлу
      * @return true если файл существует
      */
     fun fileExists(path: String): Boolean
+    
+    /**
+     * Проверяет существование директории
+     * @param path путь к директории
+     * @return true если директория существует
+     */
+    fun directoryExists(path: String): Boolean
+    
+    /**
+     * Создает директорию если она не существует
+     * @param path путь к директории
+     * @return Result с успехом или ошибкой
+     */
+    fun createDirectory(path: String): Result<Unit>
+    
+    /**
+     * Список файлов в директории
+     * @param path путь к директории
+     * @return Result со списком файлов или ошибкой
+     */
+    fun listFiles(path: String): Result<List<String>>
+    
+    /**
+     * Удаляет файл
+     * @param path путь к файлу
+     * @return Result с успехом или ошибкой
+     */
+    fun deleteFile(path: String): Result<Unit>
     
     /**
      * Читает markdown файл из директории prompts
