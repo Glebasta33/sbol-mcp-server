@@ -1,5 +1,6 @@
 package prototype.domain.service
 
+import com.sun.org.apache.xml.internal.security.utils.XMLUtils.readResource
 import prototype.core.result.Result
 import prototype.data.service.MdFiles
 
@@ -67,5 +68,7 @@ interface FileService {
     fun readPromptFile(mdFile: MdFiles): Result<String>
 
     fun MdFiles.readPromptFileEx(): Result<String>
+
+    fun readRes(name :MdFiles): Result<String>
 }
 

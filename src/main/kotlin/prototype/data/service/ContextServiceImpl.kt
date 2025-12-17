@@ -14,7 +14,7 @@ class ContextServiceImpl(
 ) : ContextService {
     
     override fun getDataDomainContext(serviceName: String?): Result<ToolContext> {
-        return fileService.readPromptFile(AppConfig.Prompts.DATA_DOMAIN_LAYER_FILE)
+        return fileService.readRes(MdFiles.DATA)
             .map { content ->
                 if (serviceName.isNullOrBlank()) {
                     ToolContext.withoutServiceName(content)

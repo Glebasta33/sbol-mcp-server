@@ -17,7 +17,7 @@ fun Server.addDataDomainContextTool(contextService: ContextService) {
     addTool(
         name = "get_data_domain_context",
         description = """
-            Используй эту функцию для получения контекста и правил генерации Data и Domain слоёв в Clean Architecture.
+            Используй эту функцию для получения контекста и правил генерации Data и Domain слоёв в Clean Architecture и тестов для них.
             
             Функция возвращает полный контекст с примерами существующих классов (DTO, Repository, UseCase, Mappers) 
             и правилами их создания для нового сервиса.
@@ -26,6 +26,7 @@ fun Server.addDataDomainContextTool(contextService: ContextService) {
             - Нужно создать новый сервис по API-контракту, JSON-схеме или документации
             - Требуется сгенерировать Data/Domain слои для новой фичи
             - Необходимо понять структуру и паттерны организации кода в проекте
+            - Необходимо тесты для данных слоёв
             
             Аргументы:
             - service_name: название сервиса/фичи (опционально). Используется для подстановки в именования классов 

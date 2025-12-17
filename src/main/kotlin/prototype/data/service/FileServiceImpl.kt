@@ -129,6 +129,10 @@ class FileServiceImpl : FileService {
         return readFile(path)
     }
 
+    override fun readRes(name: MdFiles): Result<String> {
+            return Result.Success(object {}.javaClass.getResource("/data-domain-layer.md")?.readText() ?: "nofiles")
+    }
+
 }
 
 enum class MdFiles(val path:String){
