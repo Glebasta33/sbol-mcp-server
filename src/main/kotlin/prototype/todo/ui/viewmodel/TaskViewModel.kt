@@ -109,6 +109,7 @@ class TaskViewModel(
                 is Result.Success -> {
                     _currentPlan.value = result.data
                     loadAllPlans()
+                    planFileWatcher?.setUpdatingFromUI(false)
                 }
                 is Result.Error -> {
                     _error.value = result.error.message
@@ -140,6 +141,7 @@ class TaskViewModel(
             when (val result = planService.updateTaskStatus(plan.id, taskId, newStatus)) {
                 is Result.Success -> {
                     _currentPlan.value = result.data
+                    planFileWatcher?.setUpdatingFromUI(false)
                 }
                 is Result.Error -> {
                     _error.value = result.error.message
@@ -210,6 +212,7 @@ class TaskViewModel(
                     if (_currentPlan.value?.id == planId) {
                         loadCurrentPlan()
                     }
+                    planFileWatcher?.setUpdatingFromUI(false)
                 }
                 is Result.Error -> {
                     _error.value = result.error.message
