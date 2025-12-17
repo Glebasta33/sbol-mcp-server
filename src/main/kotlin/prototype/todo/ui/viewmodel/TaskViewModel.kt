@@ -40,7 +40,7 @@ class TaskViewModel(
             coroutineScope.launch {
                 watcher.reloadTrigger.collect { _ ->
                     // При каждом изменении файла перезагружаем планы
-                    println("TaskViewModel: File change detected, reloading plans...")
+                    System.err.println("TaskViewModel: File change detected, reloading plans...")
                     loadCurrentPlan()
                     loadAllPlans()
                 }

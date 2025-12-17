@@ -120,7 +120,7 @@ fun Server.addCreatePlanTool(
                 // Запустить UI если это первый план
                 if (isUILaunched.compareAndSet(false, true)) {
                     coroutineScope.launch {
-                        println("Launching Task Manager UI after first plan creation...")
+                        System.err.println("Launching Task Manager UI after first plan creation...")
                         launchTaskManagerApp(planService, planFileWatcher)
                     }
                 }

@@ -53,7 +53,7 @@ class PlanFileWatcher(
      */
     fun start() {
         if (isActive.getAndSet(true)) {
-            println("PlanFileWatcher: Already running")
+            System.err.println("PlanFileWatcher: Already running")
             return
         }
         
@@ -61,9 +61,9 @@ class PlanFileWatcher(
         if (!plansDirectory.exists()) {
             try {
                 Files.createDirectories(plansDirectory)
-                println("PlanFileWatcher: Created plans directory at $plansDirectory")
+                System.err.println("PlanFileWatcher: Created plans directory at $plansDirectory")
             } catch (e: Exception) {
-                println("PlanFileWatcher: Failed to create plans directory: ${e.message}")
+                System.err.println("PlanFileWatcher: Failed to create plans directory: ${e.message}")
                 isActive.set(false)
                 return
             }
@@ -77,9 +77,9 @@ class PlanFileWatcher(
                 StandardWatchEventKinds.ENTRY_MODIFY,
                 StandardWatchEventKinds.ENTRY_DELETE
             )
-            println("PlanFileWatcher: Started watching directory: $plansDirectory")
+            System.err.println("PlanFileWatcher: Started watching directory: $plansDirectory")
         } catch (e: Exception) {
-            println("PlanFileWatcher: Failed to register watch service: ${e.message}")
+            System.err.println("PlanFileWatcher: Failed to register watch service: ${e.message}")
             isActive.set(false)
             return
         }
@@ -98,7 +98,7 @@ class PlanFileWatcher(
      */
     fun stop() {
         if (!isActive.getAndSet(false)) {
-            println("PlanFileWatcher: Already stopped")
+            System.err.println("PlanFileWatcher: Already stopped")
             return
         }
         
@@ -107,9 +107,9 @@ class PlanFileWatcher(
         
         try {
             watchService.close()
-            println("PlanFileWatcher: Stopped watching")
+            System.err.println("PlanFileWatcher: Stopped watching")
         } catch (e: Exception) {
-            println("PlanFileWatcher: Error closing watch service: ${e.message}")
+            System.err.println("PlanFileWatcher: Error closing watch service: ${e.message}")
         }
     }
     
@@ -119,7 +119,7 @@ class PlanFileWatcher(
      */
     fun setUpdatingFromUI(updating: Boolean) {
         isUpdatingFromUI.set(updating)
-        println("PlanFileWatcher: UI update flag set to $updating")
+        System.err.println("PlanFileWatcher: UI update flag set to $updating")
     }
     
     /**
@@ -166,15 +166,15 @@ class PlanFileWatcher(
                 // Сбросить ключ для получения следующих событий
                 val valid = key.reset()
                 if (!valid) {
-                    println("PlanFileWatcher: Watch key no longer valid, stopping")
+                    System.err.println("PlanFileWatcher: Watch key no longer valid, stopping")
                     break
                 }
                 
             } catch (e: CancellationException) {
-                println("PlanFileWatcher: Watch loop cancelled")
+                System.err.println("PlanFileWatcher: Watch loop cancelled")
                 break
             } catch (e: Exception) {
-                println("PlanFileWatcher: Error in watch loop: ${e.message}")
+                System.err.println("PlanFileWatcher: Error in watch loop: ${e.message}")
                 // Продолжить работу после ошибки
             }
         }
@@ -186,7 +186,7 @@ class PlanFileWatcher(
     private suspend fun handleFileEvent(kind: WatchEvent.Kind<*>, filename: Path) {
         // Проверить флаг обновления из UI
         if (isUpdatingFromUI.get()) {
-            println("PlanFileWatcher: Ignoring event for $filename (update from UI)")
+            System.err.println("PlanFileWatcher: Ignoring event for $filename (update from UI)")
             // Сбросить флаг после небольшой задержки
             delay(100)
             isUpdatingFromUI.set(false)
@@ -195,15 +195,15 @@ class PlanFileWatcher(
         
         when (kind) {
             StandardWatchEventKinds.ENTRY_CREATE -> {
-                println("PlanFileWatcher: File created: $filename")
+                System.err.println("PlanFileWatcher: File created: $filename")
                 loadCurrentPlan()
             }
             StandardWatchEventKinds.ENTRY_MODIFY -> {
-                println("PlanFileWatcher: File modified: $filename")
+                System.err.println("PlanFileWatcher: File modified: $filename")
                 loadCurrentPlan()
             }
             StandardWatchEventKinds.ENTRY_DELETE -> {
-                println("PlanFileWatcher: File deleted: $filename")
+                System.err.println("PlanFileWatcher: File deleted: $filename")
                 loadCurrentPlan()
             }
         }
@@ -225,18 +225,18 @@ class PlanFileWatcher(
                     _reloadTrigger.value += 1
                     
                     if (plan != null) {
-                        println("PlanFileWatcher: Loaded plan '${plan.name}' with ${plan.tasks.size} tasks")
+                        System.err.println("PlanFileWatcher: Loaded plan '${plan.name}' with ${plan.tasks.size} tasks")
                     } else {
-                        println("PlanFileWatcher: No active plan found")
+                        System.err.println("PlanFileWatcher: No active plan found")
                     }
                 }
                 is Result.Error -> {
-                    println("PlanFileWatcher: Error loading plan: ${result.error}")
+                    System.err.println("PlanFileWatcher: Error loading plan: ${result.error}")
                     _currentPlan.value = null
                 }
             }
         } catch (e: Exception) {
-            println("PlanFileWatcher: Exception loading plan: ${e.message}")
+            System.err.println("PlanFileWatcher: Exception loading plan: ${e.message}")
             _currentPlan.value = null
         }
     }

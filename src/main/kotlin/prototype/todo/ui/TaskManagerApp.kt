@@ -372,13 +372,13 @@ private object UIState {
 fun launchTaskManagerApp(planService: PlanService, planFileWatcher: PlanFileWatcher? = null) {
     // Если UI уже запущен, показываем окно
     if (UIState.isRunning) {
-        println("Task Manager UI is already running, showing window...")
+        System.err.println("Task Manager UI is already running, showing window...")
         UIState.showWindow?.invoke(true)
         return
     }
 
     UIState.isRunning = true
-    println("Launching Task Manager UI in separate daemon thread...")
+    System.err.println("Launching Task Manager UI in separate daemon thread...")
 
     application(exitProcessOnExit = false) {
         // Состояние видимости окна
@@ -394,7 +394,7 @@ fun launchTaskManagerApp(planService: PlanService, planFileWatcher: PlanFileWatc
             Window(
                 onCloseRequest = {
                     exitApplication()
-                    println("Task Manager UI window hidden (MCP server still running)")
+                    System.err.println("Task Manager UI window hidden (MCP server still running)")
                 },
                 title = "Task Manager",
                 state = windowState,
@@ -405,7 +405,7 @@ fun launchTaskManagerApp(planService: PlanService, planFileWatcher: PlanFileWatc
                     planFileWatcher = planFileWatcher,
                     onCloseRequest = {
                         exitApplication()
-                        println("Task Manager UI window hidden (MCP server still running)")
+                        System.err.println("Task Manager UI window hidden (MCP server still running)")
                     }
                 )
             }
@@ -414,6 +414,6 @@ fun launchTaskManagerApp(planService: PlanService, planFileWatcher: PlanFileWatc
     // Этот код выполнится только при полном завершении application (никогда в daemon режиме)
     UIState.isRunning = false
     UIState.showWindow = null
-    println("Task Manager UI application terminated")
+    System.err.println("Task Manager UI application terminated")
 }
 

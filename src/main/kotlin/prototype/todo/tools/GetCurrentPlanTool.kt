@@ -139,7 +139,7 @@ fun Server.addGetCurrentPlanTool(
                     // Запустить UI если это первый запрос текущего плана
                     if (isUILaunched.compareAndSet(false, true)) {
                         coroutineScope.launch {
-                            println("Launching Task Manager UI after getting current plan...")
+                            System.err.println("Launching Task Manager UI after getting current plan...")
                             launchTaskManagerApp(planService, planFileWatcher)
                         }
                     }

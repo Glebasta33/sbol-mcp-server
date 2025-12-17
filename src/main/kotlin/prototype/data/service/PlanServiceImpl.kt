@@ -206,13 +206,13 @@ class PlanServiceImpl(
                                     is Result.Success -> parseResult.data
                                     is Result.Error -> {
                                         // Логировать ошибку, но продолжить обработку других файлов
-                                        println("Warning: Failed to parse plan file $filePath: ${parseResult.error}")
+                                        System.err.println("Warning: Failed to parse plan file $filePath: ${parseResult.error}")
                                         null
                                     }
                                 }
                             }
                             is Result.Error -> {
-                                println("Warning: Failed to read plan file $filePath: ${readResult.error}")
+                                System.err.println("Warning: Failed to read plan file $filePath: ${readResult.error}")
                                 null
                             }
                         }

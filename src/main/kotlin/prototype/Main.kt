@@ -58,7 +58,7 @@ fun main() {
         // Инициализировать и запустить FileWatcher для отслеживания изменений планов
         val fileWatcher = PlanFileWatcher(planService, coroutineScope)
         fileWatcher.start()
-        println("PlanFileWatcher started and monitoring ${AppConfig.PLANS_BASE_PATH}")
+        System.err.println("PlanFileWatcher started and monitoring ${AppConfig.PLANS_BASE_PATH}")
 
         // Создать и настроить MCP сервер
         val server: Server = createServer(contextService, planService, fileService, fileWatcher, coroutineScope)
@@ -100,7 +100,7 @@ fun createServer(
     val options = ServerOptions(
         capabilities = ServerCapabilities(
             prompts = ServerCapabilities.Prompts(listChanged = true),
-            tools = ServerCapabilities.Tools(true),
+            tools = ServerCapabilities.Tools(listChanged = true),
         )
     )
 
