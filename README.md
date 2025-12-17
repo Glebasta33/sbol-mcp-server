@@ -41,7 +41,7 @@ MCP (Model Context Protocol) сервер на Kotlin для разработк�
 
 ./gradlew installDis
 
-t### Запуск сервера
+### Запуск сервера
 
 Базовый запуск (только MCP tools):
 ./build/install/sbol-mcp-server/bin/sbol-mcp-server
