@@ -38,7 +38,7 @@ object MarkdownPlanParser {
     private val activeRegex = Regex("""\*\*Active:\*\*\s+(.+)$""")
     private val descriptionHeaderRegex = Regex("""^##\s+Описание$""")
     private val tasksHeaderRegex = Regex("""^##\s+Задачи$""")
-    private val taskRegex = Regex("""^-\s+\[([ x])\]\s+([^:]+):\s+(.+)$""")
+    private val taskRegex = Regex("""^-\s+\[([^\]]+)\]\s+([^:]+):\s+(.+?)(?:\s+\(([^)]+)\))?$""")
     
     /**
      * Парсит MD файл в объект TaskPlan
@@ -103,8 +103,15 @@ object MarkdownPlanParser {
             // Задачи
             appendLine("## Задачи")
             plan.tasks.forEach { task ->
-                val checkbox = if (task.isCompleted()) "[x]" else "[ ]"
-                appendLine("- $checkbox ${task.id}: ${task.title}")
+                val checkbox = when {
+                    task.isCompleted() -> "[x]"
+                    task.isPending() -> "[ ]"
+                    task.isInProgress() -> "[→]"
+                    task.isCancelled() -> "[c]"
+                    else -> "[ ]"
+                }
+                // ✅ ДОБАВИТЬ: Сохранять статус в скобках
+                appendLine("- $checkbox ${task.id}: ${task.title} (${task.status.value})")
             }
         }
     }
@@ -197,11 +204,25 @@ object MarkdownPlanParser {
             val match = taskRegex.find(line)
             
             if (match != null) {
-                val isCompleted = match.groupValues[1] == "x"
+                val checkboxSymbol = match.groupValues[1].trim()
                 val taskId = match.groupValues[2].trim()
                 val taskTitle = match.groupValues[3].trim()
+                val statusString = match.groupValues.getOrNull(4)?.trim()
                 
-                val status = if (isCompleted) TaskStatus.COMPLETED else TaskStatus.PENDING
+                // Определить статус по приоритету: статус в скобках > статус по checkbox
+                val status = when {
+                    // Если статус указан явно в скобках - использовать его
+                    !statusString.isNullOrBlank() -> {
+                        try {
+                            TaskStatus.fromValue(statusString)
+                        } catch (e: IllegalArgumentException) {
+                            // Если статус неизвестен - fallback на checkbox
+                            parseStatusFromCheckbox(checkboxSymbol)
+                        }
+                    }
+                    // Иначе определить по checkbox
+                    else -> parseStatusFromCheckbox(checkboxSymbol)
+                }
                 
                 tasks.add(
                     Task(
@@ -219,6 +240,19 @@ object MarkdownPlanParser {
         }
         
         return tasks
+    }
+    
+    /**
+     * Парсить статус по символу в checkbox
+     */
+    private fun parseStatusFromCheckbox(checkboxSymbol: String): TaskStatus {
+        return when (checkboxSymbol) {
+            "x" -> TaskStatus.COMPLETED
+            "→" -> TaskStatus.IN_PROGRESS
+            "c" -> TaskStatus.CANCELLED
+            " ", "" -> TaskStatus.PENDING
+            else -> TaskStatus.PENDING // fallback для неизвестных символов
+        }
     }
 }
 
