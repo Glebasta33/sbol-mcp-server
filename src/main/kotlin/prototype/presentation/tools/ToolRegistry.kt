@@ -1,6 +1,10 @@
 package prototype.presentation.tools
 
-import compiler.tools.runGradleCommand
+import compiler.tools.analyzeGradleError
+import compiler.tools.applyGradleFix
+import compiler.tools.askForGradleBuildParams
+import compiler.tools.cleanGradleProject
+import compiler.tools.executeGradleBuild
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.coroutines.CoroutineScope
 import prototype.data.service.PlanFileWatcher
@@ -30,7 +34,13 @@ class ToolRegistry(
         server.addHelloTool()
         server.testArgumentsTool(fileService)
         server.addDataDomainContextTool(contextService)
-        server.runGradleCommand()
+
+        server.askForGradleBuildParams()
+        server.executeGradleBuild()
+        server.applyGradleFix()
+        server.cleanGradleProject()
+        server.analyzeGradleError()
+        server.askForGradleBuildParams()
         // Plan management tools
         planService?.let { service ->
             server.addCreatePlanTool(service, planFileWatcher, coroutineScope)
