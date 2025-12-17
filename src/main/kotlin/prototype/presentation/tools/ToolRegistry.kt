@@ -1,5 +1,6 @@
 package prototype.presentation.tools
 
+import compiler.tools.runGradleCommand
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import kotlinx.coroutines.CoroutineScope
 import prototype.data.service.PlanFileWatcher
@@ -29,7 +30,7 @@ class ToolRegistry(
         server.addHelloTool()
         server.testArgumentsTool(fileService)
         server.addDataDomainContextTool(contextService)
-
+        server.runGradleCommand()
         // Plan management tools
         planService?.let { service ->
             server.addCreatePlanTool(service, planFileWatcher, coroutineScope)
